@@ -1,0 +1,28 @@
+{
+  "manifest_version": 1,
+  "version": 1,
+  "type": "APP",
+  "icon": "icon.png",
+  "name": {
+    "en": "test",
+    "ja": "test"
+  },
+  "description": {
+    "en": "test",
+    "ja": "test"
+  },
+  "desktop": {
+    "js": [],
+    "css": []
+  },
+  "mobile": {
+    "js": [],
+    "css": []
+  },
+  "config": {
+    "html": "config.html",
+    "js": [],
+    "css": [],
+    "required_params": [ "message" ]
+  }
+}

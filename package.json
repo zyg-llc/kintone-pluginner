@@ -1,0 +1,28 @@
+{
+  "name": "kintone-pluginner",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "init": "create-kintone-plugin",
+    "dev": "set NODE_ENV=\"development\" && yarn build -W",
+    "deploy": "set NODE_ENV=\"production\" && yarn build",
+    "build": "node ./scripts/esbuild.config.js",
+    "create-ppk": "node ./scripts/create-private-key.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@kintone/create-plugin": "^5.1.38",
+    "@kintone/plugin-packer": "^6.0.33",
+    "@kintone/plugin-uploader": "^7.1.10",
+    "archiver": "^5.3.1",
+    "dotenv": "^16.0.3",
+    "esbuild": "^0.17.16",
+    "esbuild-envfile-plugin": "^1.0.5",
+    "esbuild-sass-plugin": "^2.8.0",
+    "fs-extra": "^11.1.1",
+    "node-rsa": "^1.1.1"
+  }
+}
