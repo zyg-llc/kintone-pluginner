@@ -6,11 +6,13 @@ const { build, context } = require('esbuild')
 const { sassPlugin }  = require('esbuild-sass-plugin')
 const esbuildEnv      = require('esbuild-envfile-plugin')
 const watchPlugin     = require('./esbuild.watchPlugin')
-const dotenv = require('dotenv').config({path: path.resolve(__dirname, '../.env')})
+const appenv = require('dotenv').config({path: path.resolve(__dirname, '../.env')})
+const dotenv = require('dotenv').config({path: path.resolve(__dirname, '../env/.env')})
 // const deploy      = require('./uploader')
 
 const args    = process.argv.slice(2)
-const watch   = args.includes('--watch') || args.includes('-W');
+const watch   = args.includes('--watch')  || args.includes('-W');
+const deploy  = args.includes('--deploy') || args.includes('-D');
 const env     = dotenv.parsed;
 const outdir  = path.resolve(__dirname, '../dist')
 
@@ -28,7 +30,7 @@ const builder = {
     sassPlugin(),
   ],
   define: {
-    'process.env': JSON.stringify(env),
+    'process.env': JSON.stringify(appenv.parsed),
     'process.env.NODE_ENV': process.env.NODE_ENV || 'development',
   },
   outdir: outdir,
@@ -48,10 +50,16 @@ removeDist().then(async _ => {
     // パッケージビルド
     const ctx = await context(builder)
 
+    await pluginUploader()
+
     // watchモード準備
     await ctx.watch()
   } else {
     await build(builder)
+
+    if (deploy) {
+      await pluginUploader()
+    }
   }
 }).catch(e => {
   console.log('🚫 Error!')
@@ -77,6 +85,30 @@ const createPpk = () => {
       if (err) {
         reject(stderr)
       } else {
+        resolve(stdout)
+      }
+    })
+  })
+}
+
+
+const pluginUploader = () => {
+  console.log('🔄 Uploading...')
+  let command = `yarn kintone-plugin-uploader`
+  const options = [
+    ['--base-url', env.KINTONE_BASE_URL],
+    ['--username', env.KINTONE_USERNAME],
+    ['--password', env.KINTONE_PASSWORD],
+    [path.resolve(__dirname, `../plugin.zip`)],
+  ]
+  options.forEach(opt => command += ` ` + opt.join(' '))
+
+  return new Promise((resolve, reject) => {
+    exec(command, { encoding: 'UTF-8' }, (err, stdout, stderr) => {
+      if (err) {
+        reject(stderr)
+      } else {
+        console.log('✅ Uploaded!')
         resolve(stdout)
       }
     })

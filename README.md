@@ -1,4 +1,4 @@
-# kintoneカスタマイズ
+# kintoneプラグイン
 
 ## 導入方法
 
@@ -15,7 +15,7 @@ yarn install
 
 ### 1. 環境変数ファイル(.env)
 
-`./env/.env.example`を同ディレクトリに`./env/.env`として複製。
+`./env/.env.example`と同じディレクトリに`./env/.env`を作成し、以下のように記述してください。
 
 ```bash
 KINTONE_BASE_URL=https://~.cybozu.com   # kintone環境URL(最後のスラッシュ`/`は不要)
@@ -38,6 +38,7 @@ yarn create-ppk
 |コマンド|概要|
 |-|-|
 |`yarn create-ppk`|秘密鍵発行|
+|`yarn build`|プラグインを生成(`plugin.zip`)|
 |`yarn dev`|ソースコードを更新するとkintoneに反映される。|
 |`yarn deploy`|カスタマイズをkintoneに"本番モード"で反映します。|
 
@@ -71,6 +72,14 @@ yarn create-ppk
     }
 
     // ... 略 ...
+    ```
+
+1. `./src/config.html`ファイルに要素ID`app`をもつ`div`要素を追記
+
+    ```html
+    <!-- ... 略 ... -->
+      <div id="app"></div>
+    <!-- ... 略 ... -->
     ```
 
 1. `./src/config`ディレクトリに`App.vue`を作成

@@ -5,9 +5,9 @@
   "main": "index.js",
   "scripts": {
     "init": "create-kintone-plugin",
-    "dev": "set NODE_ENV=\"development\" && yarn build -W",
-    "deploy": "set NODE_ENV=\"production\" && yarn build",
     "build": "node ./scripts/esbuild.config.js",
+    "dev": "set NODE_ENV=\"development\" && yarn build -W",
+    "deploy": "set NODE_ENV=\"production\" && yarn build -D",
     "create-ppk": "node ./scripts/create-private-key.js"
   },
   "keywords": [],
