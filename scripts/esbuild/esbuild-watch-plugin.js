@@ -2,7 +2,7 @@ const fs    = require('fs')
 const fsx   = require('fs-extra')
 const path  = require('path')
 const { exec } = require('child_process')
-const createManifest = require('./create-manifest')
+const createManifest = require(path.resolve('scripts/create-manifest'))
 
 const watchPlugin = {
   name: 'watch-plugin',
@@ -13,10 +13,10 @@ const watchPlugin = {
         console.log('🚫 Error!')
         console.log(result.errors)
       } else {
-        fsx.copySync(path.resolve(__dirname, `../src/icon.png`),    path.resolve(__dirname, `../dist/icon.png`))
-        fsx.copySync(path.resolve(__dirname, `../src/config.html`), path.resolve(__dirname, `../dist/config.html`))
+        fsx.copySync(path.resolve(`src/icon.png`),    path.resolve(`dist/icon.png`))
+        fsx.copySync(path.resolve(`src/config.html`), path.resolve(`dist/config.html`))
 
-        const cssDir = path.resolve(__dirname, `../dist/css`)
+        const cssDir = path.resolve(`dist/css`)
         if (!fs.existsSync(cssDir)) fs.mkdirSync(cssDir)
 
         createManifest()

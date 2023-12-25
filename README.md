@@ -15,7 +15,7 @@ yarn install
 
 ### 1. 環境変数ファイル(.env)
 
-`./env/.env.example`と同じディレクトリに`./env/.env`を作成し、以下のように記述してください。
+`./.env.example`と同じディレクトリに`./.env`を作成し、以下のように記述してください。
 
 ```bash
 KINTONE_BASE_URL=https://~.cybozu.com   # kintone環境URL(最後のスラッシュ`/`は不要)
@@ -50,31 +50,19 @@ yarn create-ppk
     yarn add -D vue esbuild-plugin-vue3
     ```
 
-1. esbuild (`./scripts/esbuild.config.js`) 設定変更
+2. esbuild (`./esbuild.config.js`) 設定変更
 
     ```javascript
-
-    // ... 略 ...
-
-    const esbuildEnv  = require('esbuild-envfile-plugin')
     const vuePlugin = require("esbuild-plugin-vue3")    // ← 追加
 
-    // ... 略 ...
-
-    const builder = {
-      // ... 略 ...
+    module.exports = {
       plugins: [
-        esbuildEnv,
-        vuePlugin(),  // ← 追加
-        sassPlugin(),
-      ],
-      // ... 略 ...
+        vuePlugin()  // ← 追加
+      ]
     }
-
-    // ... 略 ...
     ```
 
-1. `./src/config.html`ファイルに要素ID`app`をもつ`div`要素を追記
+3. `./src/config.html`ファイルに要素ID`app`をもつ`div`要素を追記
 
     ```html
     <!-- ... 略 ... -->
@@ -82,55 +70,40 @@ yarn create-ppk
     <!-- ... 略 ... -->
     ```
 
-1. `./src/config`ディレクトリに`App.vue`を作成
-
-    ```html
-    <script setup>
-    </script>
-
-    <template>
-      <div>Hello World!</div>
-    </template>
-    ```
-
-1. `config.js`でVue3を読込み
+4. `./src/config.js`でVue3を読込み
 
     ```javascript
-
+    'use strict';
     import { createApp } from 'vue'
     import App from './config/App.vue'
 
-    // ... 略 ...
+    (function(PLUGIN_ID) {
 
-    kintone.events.on('app.record.index.show', (event) => {
-      console.log(event);
-
-      /** **************************************************************
-       * 例1) カスタマイズビュー
-       *
-       * kintoneのカスタマイズビューの`HTML`欄に
-       * `<div id="app"></div>`
-       * を登録してください。
-       ************************************************************** */
-      const app = createApp(App)
+      const config = kintone.plugin.app.getConfig(PLUGIN_ID);
+      const app = createApp(App, { config })
       app.mount('#app')
 
-      /** **************************************************************
-       * 例2) 一覧のメニューの右側の空白部分
-       ************************************************************** */
-      if (!document.getElementById('app')) {
-        // ヘッダー要素取得
-        const header = kintone.app.getHeaderMenuSpaceElement()
+    })(kintone.$PLUGIN_ID);
+    ```
 
-        // `div#app` 要素を作成
-        const appEl = document.createElement('div')
-        appEl.id = 'app'
+5. `./src/config/App.vue`を作成
 
-        // ヘッダー要素に `div#app` 要素を追加
-        header.appendChild(appEl)
+    ```html
+    <script setup>
+    import { ref } from 'vue'
+    const props = defineProps({
+      config: { type: Object, default: () => ({}) },
+    })
+    const input = ref(props.config)
 
-        // Vue定義
-        createApp(App).mount('#app')
-      }
-    });
+    const onSubmit = () => {
+      kintone.plugin.app.setConfig(input.value)
+    }
+    </script>
+
+    <template>
+      <form @submit.prevent="onSubmit">
+        <input v-model="input.message" />
+      </form>
+    </template>
     ```

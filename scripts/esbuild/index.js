@@ -1,26 +1,29 @@
 const fs    = require('fs')
 const fsx   = require('fs-extra')
 const path  = require('path')
-const { exec } = require('child_process')
+const lodash = require('lodash');
+const { exec }    = require('child_process')
+const { program } = require('commander')
 const { build, context } = require('esbuild')
 const { sassPlugin }  = require('esbuild-sass-plugin')
 const esbuildEnv      = require('esbuild-envfile-plugin')
-const watchPlugin     = require('./esbuild.watchPlugin')
-const appenv = require('dotenv').config({path: path.resolve(__dirname, '../.env')})
-const dotenv = require('dotenv').config({path: path.resolve(__dirname, '../env/.env')})
+const watchPlugin     = require('./esbuild-watch-plugin')
+const config          = require(path.resolve('esbuild.config.js'))
 // const deploy      = require('./uploader')
 
-const args    = process.argv.slice(2)
-const watch   = args.includes('--watch')  || args.includes('-W');
-const deploy  = args.includes('--deploy') || args.includes('-D');
-const env     = dotenv.parsed;
-const outdir  = path.resolve(__dirname, '../dist')
+program.option('--node-env', 'NODE_ENV', '"development"')
+program.option('-e, --env', '.envファイル', '.env')
+program.option('-W, --watch', 'ウォッチャー起動(Devモード)', false)
+program.option('-D, --deploy', 'デプロイ', false);
+program.parse();
+const opt = program.opts();
 
-const builder = {
+const appenv  = require('dotenv').config({path: path.resolve(opt.env)})
+const builder = lodash.merge({}, {
   entryPoints: [
-    path.resolve(__dirname, '../src/config.js'),
-    path.resolve(__dirname, '../src/desktop.js'),
-    path.resolve(__dirname, '../src/mobile.js'),
+    path.resolve('./src/config.js'),
+    path.resolve('./src/desktop.js'),
+    path.resolve('./src/mobile.js'),
   ],
   entryNames: '[ext]/[name]',
 
@@ -30,36 +33,33 @@ const builder = {
     sassPlugin(),
   ],
   define: {
-    'process.env': JSON.stringify(appenv.parsed),
-    'process.env.NODE_ENV': process.env.NODE_ENV || 'development',
+    'process.env': JSON.stringify(appenv.parsed ?? {}),
+    'process.env.NODE_ENV': opt.watch ? '"development"' : '"production"',
   },
-  outdir: outdir,
-  minify: !watch,
+  outdir: path.resolve('dist'),
+  minify: !opt.watch,
   bundle: true,
-}
-
+}, config)
 
 removeDist().then(async _ => {
-  if (!fs.existsSync(path.resolve(__dirname, '../private.ppk'))) {
+  if (!fs.existsSync(path.resolve('./private.ppk'))) {
     console.log('🔑 PPK Created!')
     await createPpk()
   }
 
   console.log('🔨 Building...')
-  if (watch) {
+  if (opt.watch) {
     // パッケージビルド
     const ctx = await context(builder)
 
+    // watchモード準備
     await pluginUploader()
 
-    // watchモード準備
     await ctx.watch()
   } else {
     await build(builder)
 
-    if (deploy) {
-      await pluginUploader()
-    }
+    if (opt.deploy) await pluginUploader()
   }
 }).catch(e => {
   console.log('🚫 Error!')
@@ -68,8 +68,8 @@ removeDist().then(async _ => {
 
 function removeDist() {
   return new Promise((resolve) => {
-    if (fs.existsSync(outdir)) {
-      fsx.remove(outdir)
+    if (fs.existsSync(builder.outdir)) {
+      fsx.remove(builder.outdir)
       resolve(true)
     } else {
       resolve(false)
@@ -93,17 +93,17 @@ const createPpk = () => {
 
 
 const pluginUploader = () => {
-  console.log('🔄 Uploading...')
-  let command = `yarn kintone-plugin-uploader`
+  let command = `npx @kintone/plugin-uploader`
   const options = [
-    ['--base-url', env.KINTONE_BASE_URL],
-    ['--username', env.KINTONE_USERNAME],
-    ['--password', env.KINTONE_PASSWORD],
-    [path.resolve(__dirname, `../plugin.zip`)],
+    ['--base-url', appenv.KINTONE_BASE_URL],
+    ['--username', appenv.KINTONE_USERNAME],
+    ['--password', appenv.KINTONE_PASSWORD],
+    [path.resolve(`plugin.zip`)],
   ]
   options.forEach(opt => command += ` ` + opt.join(' '))
 
   return new Promise((resolve, reject) => {
+    console.log('🔄 Uploading...')
     exec(command, { encoding: 'UTF-8' }, (err, stdout, stderr) => {
       if (err) {
         reject(stderr)
