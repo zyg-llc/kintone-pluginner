@@ -2,12 +2,13 @@ const fs    = require('fs')
 const fsx   = require('fs-extra')
 const path  = require('path')
 const lodash = require('lodash');
-const { exec }    = require('child_process')
-const { program } = require('commander')
 const { build, context } = require('esbuild')
+const { program }     = require('commander')
+const { exec }        = require('child_process')
 const { sassPlugin }  = require('esbuild-sass-plugin')
 const esbuildEnv      = require('esbuild-envfile-plugin')
 const watchPlugin     = require('./esbuild-watch-plugin')
+const pluginUploader  = require('./uploader')
 const config          = require(path.resolve('esbuild.config.js'))
 // const deploy      = require('./uploader')
 
@@ -18,7 +19,7 @@ program.option('-D, --deploy', 'デプロイ', false);
 program.parse();
 const opt = program.opts();
 
-const appenv  = require('dotenv').config({path: path.resolve(opt.env)})
+const appenv  = require('dotenv').config({path: path.resolve(opt.env)})?.parsed
 const builder = lodash.merge({}, {
   entryPoints: [
     path.resolve('./src/config.js'),
@@ -29,11 +30,12 @@ const builder = lodash.merge({}, {
 
   plugins: [
     esbuildEnv,
-    watchPlugin,
+    watchPlugin(opt, appenv),
+    // htmlModulesPlugin(),
     sassPlugin(),
   ],
   define: {
-    'process.env': JSON.stringify(appenv.parsed ?? {}),
+    'process.env': JSON.stringify(appenv ?? {}),
     'process.env.NODE_ENV': opt.watch ? '"development"' : '"production"',
   },
   outdir: path.resolve('dist'),
@@ -47,23 +49,23 @@ removeDist().then(async _ => {
     await createPpk()
   }
 
-  console.log('🔨 Building...')
   if (opt.watch) {
     // パッケージビルド
     const ctx = await context(builder)
 
-    // watchモード準備
-    await pluginUploader()
+    // // watchモード準備
+    // await pluginUploader(appenv)
 
     await ctx.watch()
   } else {
     await build(builder)
 
-    if (opt.deploy) await pluginUploader()
+    if (opt.deploy) await pluginUploader(appenv)
   }
 }).catch(e => {
   console.log('🚫 Error!')
   console.log(e)
+  process.exit(1);
 })
 
 function removeDist() {
@@ -91,26 +93,3 @@ const createPpk = () => {
   })
 }
 
-
-const pluginUploader = () => {
-  let command = `npx @kintone/plugin-uploader`
-  const options = [
-    ['--base-url', appenv.KINTONE_BASE_URL],
-    ['--username', appenv.KINTONE_USERNAME],
-    ['--password', appenv.KINTONE_PASSWORD],
-    [path.resolve(`plugin.zip`)],
-  ]
-  options.forEach(opt => command += ` ` + opt.join(' '))
-
-  return new Promise((resolve, reject) => {
-    console.log('🔄 Uploading...')
-    exec(command, { encoding: 'UTF-8' }, (err, stdout, stderr) => {
-      if (err) {
-        reject(stderr)
-      } else {
-        console.log('✅ Uploaded!')
-        resolve(stdout)
-      }
-    })
-  })
-}
