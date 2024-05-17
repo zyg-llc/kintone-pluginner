@@ -1,25 +1,40 @@
-const { exec } = require('child_process')
-const path  = require('path')
+const axios = require('axios')
+const path  = require('node:path')
+const fs = require('node:fs');
 
 const pluginUploader = (env) => {
-  let command = `npx @kintone/plugin-uploader`
-  const options = [
-    ['--base-url', env.KINTONE_BASE_URL],
-    ['--username', env.KINTONE_USERNAME],
-    ['--password', env.KINTONE_PASSWORD],
-    [path.resolve(`./plugin.zip`)],
-  ]
-  options.forEach(opt => command += ` ` + opt.join(' '))
+  const pluginPath = path.resolve(process.cwd()+'/plugin.zip')
+  if (!fs.existsSync(pluginPath)) {
+    throw new Error('プラグインファイル(zip)がありません。ビルドしてください。')
+  }
 
   return new Promise((resolve, reject) => {
-    console.log('🔄 Uploading...')
-    exec(command, { encoding: 'UTF-8' }, (err, stdout, stderr) => {
-      if (err) {
-        reject(stderr)
-      } else {
-        console.log('✅ Uploaded!')
-        resolve(stdout)
-      }
+    const Authorization = Buffer.from(`${env?.KINTONE_USERNAME}:${env?.KINTONE_PASSWORD}`).toString('base64')
+
+    const client = axios.create({
+      baseURL: env?.KINTONE_BASE_URL+'/k/api',
+      headers: { 'X-Cybozu-Authorization': Authorization },
+    })
+
+    client.post('/blob/upload.json', { file: fs.createReadStream(pluginPath) }, {
+      headers: { 'Content-Type': 'multipart/form-data', }
+    }).then(({data}) => {
+      const fileKey = data.result?.fileKey
+
+      client.post('/dev/plugin/import.json', { item: fileKey }).then(({data}) => {
+        if (data.success) {
+          console.log('✅ Uploaded!')
+          resolve(data.result)
+        } else {
+          reject(data)
+        }
+      }).catch(e => {
+        console.error(e)
+        reject(e.response)
+      })
+    }).catch(e => {
+      console.error(e)
+      reject(e.response)
     })
   })
 }

@@ -14,8 +14,8 @@
   "license": "ISC",
   "devDependencies": {
     "@kintone/plugin-packer": "^6.0.33",
-    "@kintone/plugin-uploader": "^7.1.10",
     "archiver": "^5.3.1",
+    "axios": "^1.6.8",
     "commander": "^11.1.0",
     "dotenv": "^16.0.3",
     "esbuild": "^0.17.16",
