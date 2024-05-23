@@ -5,7 +5,7 @@ const { exec } = require('child_process')
 const createManifest = require(path.resolve('scripts/create-manifest'))
 const pluginUploader = require('./uploader')
 
-const watchPlugin = (opt, env) => {
+const watchPlugin = (opt) => {
   return {
     name: 'watch-plugin',
     setup(build) {
@@ -27,7 +27,7 @@ const watchPlugin = (opt, env) => {
 
           await pluginPacker().then(console.log('🏠 Builded!'))
 
-          if (opt.watch) await pluginUploader(env)
+          if (opt.watch) await pluginUploader()
         }
       })
     }

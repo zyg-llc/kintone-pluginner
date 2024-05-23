@@ -30,7 +30,7 @@ const builder = lodash.merge({}, {
 
   plugins: [
     esbuildEnv,
-    watchPlugin(opt, appenv),
+    watchPlugin(opt),
     // htmlModulesPlugin(),
     sassPlugin(),
   ],
@@ -38,6 +38,7 @@ const builder = lodash.merge({}, {
     'process.env': JSON.stringify(appenv ?? {}),
     'process.env.NODE_ENV': opt.watch ? '"development"' : '"production"',
   },
+  pure: opt.watch ? [] : ['console.log', 'console.info'],
   outdir: path.resolve('dist'),
   minify: !opt.watch,
   bundle: true,
@@ -60,7 +61,7 @@ removeDist().then(async _ => {
   } else {
     await build(builder)
 
-    if (opt.deploy) await pluginUploader(appenv)
+    if (opt.deploy) await pluginUploader()
   }
 }).catch(e => {
   console.log('🚫 Error!')
