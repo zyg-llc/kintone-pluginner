@@ -15,21 +15,28 @@ yarn install
 
 ### 1. 環境変数ファイル(.env)
 
-`./.env.example`と同じディレクトリに`./.env`を作成し、以下のように記述してください。
+`./.env.example`と同じディレクトリに`./.env`を作成てください。
 
-```bash
-KINTONE_BASE_URL=https://~.cybozu.com   # kintone環境URL(最後のスラッシュ`/`は不要)
-KINTONE_USERNAME= # デプロイ権限のあるユーザーのユーザー名(例: Administrator)
-KINTONE_PASSWORD= # デプロイ権限のあるユーザーのパスワード
+
+### 2. 認証情報ファイル(auth.json)
+
+`./auth.json.example`と同じディレクトリに`./auth.json`を作成し、以下のように記述してください。
+
+```json
+{
+  "base_url": "https://~.cybozu.com"  # kintone環境URL(最後のスラッシュ`/`は不要)
+  "username": "", # デプロイ権限のあるユーザーのユーザー名(例: Administrator)
+  "password": ""  # デプロイ権限のあるユーザーのパスワード
+}
 ```
 
-### 2. 秘密鍵発行
+### 3. 秘密鍵発行
 
 ```bash
 yarn create-ppk
 ```
 
-### 3. manifest.json
+### 4. manifest.json
 
 `./manifest.json`を、「[マニフェストファイルのフォーマット](https://cybozudev.zendesk.com/hc/ja/articles/203455680-kintone-%E3%83%97%E3%83%A9%E3%82%B0%E3%82%A4%E3%83%B3%E9%96%8B%E7%99%BA%E6%89%8B%E9%A0%86#create-manifest_format)」を参考に書き換えてください。
 

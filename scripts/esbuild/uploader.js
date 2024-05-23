@@ -1,18 +1,19 @@
 const axios = require('axios')
 const path  = require('node:path')
-const fs = require('node:fs');
+const fs    = require('node:fs');
+const auth  = require(path.resolve('auth.json'))
 
-const pluginUploader = (env) => {
+const pluginUploader = () => {
   const pluginPath = path.resolve(process.cwd()+'/plugin.zip')
   if (!fs.existsSync(pluginPath)) {
     throw new Error('プラグインファイル(zip)がありません。ビルドしてください。')
   }
 
   return new Promise((resolve, reject) => {
-    const Authorization = Buffer.from(`${env?.KINTONE_USERNAME}:${env?.KINTONE_PASSWORD}`).toString('base64')
+    const Authorization = Buffer.from(`${auth?.username}:${auth?.password}`).toString('base64')
 
     const client = axios.create({
-      baseURL: env?.KINTONE_BASE_URL+'/k/api',
+      baseURL: auth?.base_url+'/k/api',
       headers: { 'X-Cybozu-Authorization': Authorization },
     })
 
