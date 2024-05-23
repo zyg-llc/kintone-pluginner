@@ -15,7 +15,7 @@ yarn install
 
 ### 1. 環境変数ファイル(.env)
 
-`./.env.example`と同じディレクトリに`./.env`を作成てください。
+`./.env.example`と同じディレクトリに`./.env`を作成してください。
 
 
 ### 2. 認証情報ファイル(auth.json)
