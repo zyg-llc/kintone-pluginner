@@ -23,6 +23,6 @@
     "html": "config.html",
     "js": [],
     "css": [],
-    "required_params": [ "message" ]
+    "required_params": []
   }
 }

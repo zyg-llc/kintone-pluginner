@@ -7,3 +7,4 @@ plugin.zip
 auth.json
 yarn.lock
 yarn-error.log
+vite.config.js.*
