@@ -44,7 +44,6 @@ yarn create-ppk
 
 |コマンド|概要|
 |-|-|
-|`yarn create-ppk`|秘密鍵発行|
 |`yarn build`|プラグインを生成(`plugin.zip`)|
 |`yarn dev`|ソースコードを更新するとkintoneに反映される。|
 |`yarn deploy`|カスタマイズをkintoneに"本番モード"で反映します。|
@@ -54,19 +53,17 @@ yarn create-ppk
 1. Vue3, esbuild用Vue3ローダー インストール
 
     ```bash
-    yarn add -D vue esbuild-plugin-vue3
+    yarn add -D vue @vitejs/plugin-vue
     ```
 
-2. esbuild (`./esbuild.config.js`) 設定変更
+2. vite (`./vite.config.js`) 設定変更
 
     ```javascript
-    const vuePlugin = require("esbuild-plugin-vue3")    // ← 追加
+    import vue from '@vitejs/plugin-vue'  // ← 追加
 
-    module.exports = {
-      plugins: [
-        vuePlugin()  // ← 追加
-      ]
-    }
+    export default defineConfig((ctx) => lodash.merge(viteConfig(ctx), {
+      plugins: [vue()]
+    }))
     ```
 
 3. `./src/config.html`ファイルに要素ID`app`をもつ`div`要素を追記
